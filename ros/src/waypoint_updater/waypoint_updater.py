@@ -29,7 +29,7 @@ class WaypointUpdater(object):
         rospy.init_node('waypoint_updater')
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)  # Should be published only once
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
 
@@ -38,15 +38,32 @@ class WaypointUpdater(object):
 
         # TODO: Add other member variables you need below
 
-        rospy.spin()
+        # rospy.spin()
+        self.main()
 
-    def pose_cb(self, msg):
-        # TODO: Implement
-        pass
 
-    def waypoints_cb(self, waypoints):
-        # TODO: Implement
-        pass
+    def main(self):
+        rate = rospy.Rate(10)
+        result_final_waypoints = Lane()
+
+        while not rospy.is_shutdown():
+            if (self._base_waypoints is None) or (self._current_pose is None):
+                continue
+
+            # Step 1: find nearest base point
+
+            # Step 2: Form final waypoints msg
+
+            # Step 3: publish to final_waypoints topic
+            self.final_waypoints_pub(result_final_waypoints)
+            rate.sleep()
+
+
+    def pose_cb(self, pose_stamped_msg):
+        self._current_pose = pose_stamped_msg.pose
+
+    def waypoints_cb(self, lane_msg):
+        self._base_waypoints = lane_msg.waypoints
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
