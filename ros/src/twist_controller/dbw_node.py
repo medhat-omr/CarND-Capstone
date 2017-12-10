@@ -8,6 +8,9 @@ import math
 
 from twist_controller import Controller
 
+# TODO(when waypoint_updater is ready): remove this
+from std_msgs.msg import Int32
+
 '''
 You can build this node only after you have built (or partially built) the `waypoint_updater` node.
 
@@ -46,6 +49,13 @@ class DBWNode(object):
         max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
 
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.__dbw_enabled_cb)
+        self.dbw_enabled = False
+
+        # TODO(when waypoint_updater is ready): remove this
+        rospy.Subscriber('/traffic_waypoint', Int32, self.__traffic_waypoint_cb)
+        self.traffic_wp = -1
+
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
         self.throttle_pub = rospy.Publisher('/vehicle/throttle_cmd',
@@ -72,6 +82,14 @@ class DBWNode(object):
             #                                                     <any other argument you need>)
             # if <dbw is enabled>:
             #   self.publish(throttle, brake, steer)
+
+            # TODO(when waypoint_updater is ready): remove this
+            if self.dbw_enabled:
+                if -1 == self.traffic_wp:
+                    self.publish(1.0, 0.0, 0.0)
+                else:
+                    self.publish(0.0, 1.0, 0.0)
+
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
@@ -91,6 +109,13 @@ class DBWNode(object):
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
         bcmd.pedal_cmd = brake
         self.brake_pub.publish(bcmd)
+
+    def __dbw_enabled_cb(self, dbw_enabled):
+        self.dbw_enabled = dbw_enabled
+
+    # TODO(when waypoint_updater is ready): remove this
+    def __traffic_waypoint_cb(self, traffic_wp):
+        self.traffic_wp = traffic_wp
 
 
 if __name__ == '__main__':
