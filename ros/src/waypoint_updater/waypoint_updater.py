@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import sys
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 
@@ -22,7 +23,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
-
+CMD_RATE = 10 # 10Hz
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -37,33 +38,39 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
+        self._base_wps = None
+        self._curr_pose = None
 
         # rospy.spin()
-        self.main()
+        self.loop()     # I am not sure if this is the most correct way instead of using spin() ?
 
 
-    def main(self):
-        rate = rospy.Rate(10)
-        result_final_waypoints = Lane()
+    def loop(self):
+        rate = rospy.Rate(CMD_RATE)
+        result_final_wps = Lane()
 
         while not rospy.is_shutdown():
-            if (self._base_waypoints is None) or (self._current_pose is None):
+            if (self._base_wps is None) or (self._curr_pose is None):
                 continue
 
             # Step 1: find nearest base point
+            nearest_wp_idx = self.find_nearest_wp()
 
             # Step 2: Form final waypoints msg
+            result_final_wps.waypoints = []
+            result_final_wps.waypoints.extend(self._base_wps[nearest_wp_idx:nearest_wp_idx + LOOKAHEAD_WPS])
 
             # Step 3: publish to final_waypoints topic
-            self.final_waypoints_pub(result_final_waypoints)
+            self.final_waypoints_pub.publish(result_final_wps)
             rate.sleep()
 
 
     def pose_cb(self, pose_stamped_msg):
-        self._current_pose = pose_stamped_msg.pose
+        self._curr_pose = pose_stamped_msg.pose
 
     def waypoints_cb(self, lane_msg):
-        self._base_waypoints = lane_msg.waypoints
+        self._base_wps = lane_msg.waypoints
+        self._n_base_wps = len(self._base_wps)
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
@@ -79,13 +86,28 @@ class WaypointUpdater(object):
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
+    def euclidean_dist(self, a, b):
+        return math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2 + (a.z-b.z)**2)
+
     def distance(self, waypoints, wp1, wp2):
         dist = 0
-        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
         for i in range(wp1, wp2+1):
-            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
+            dist += self.euclidean_dist(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
+
+    def find_nearest_wp(self):
+        # Find the nearest waypoint
+        # TODO: Try use a KD-Tree Data structure to store _base_wps according to position
+        nearest_dist = sys.maxint
+        nearest_idx = -1
+        for i in range(self._n_base_wps):
+            dist = self.euclidean_dist(self._curr_pose.position, self._base_wps[i].pose.pose.position)
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest_idx = i
+
+        return nearest_idx
 
 
 if __name__ == '__main__':
