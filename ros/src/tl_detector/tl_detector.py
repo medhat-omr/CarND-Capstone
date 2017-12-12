@@ -71,11 +71,11 @@ class TLDetector(object):
             self.pose.pose.orientation.w
         ]
 
-        self.world_2_car = tf.transformations.compose_matrix(
+        self.car_2_world = tf.transformations.compose_matrix(
             translate=pos_translation,
             angles=tf.transformations.euler_from_quaternion(pos_quaternion))
 
-        self.car_2_world = np.linalg.inv(self.world_2_car)
+        self.world_2_car = np.linalg.inv(self.car_2_world)
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
@@ -162,9 +162,9 @@ class TLDetector(object):
             return -1
 
 
-        position = np.array([pose.pose.position.x,
-                             pose.pose.position.y,
-                             pose.pose.position.z])
+        position = np.array([pose[0],
+                             pose[1],
+                             0.0])
 
         result = -1
         min_dist = np.inf
@@ -191,7 +191,7 @@ class TLDetector(object):
 
         """
         return light.state
-        """TODO: Uncomment when classification is ready
+        """TODO: Uncomment when classification ready to work on classification
         if(not self.has_image):
             self.prev_light_loc = None
             return TrafficLight.UNKNOWN
@@ -217,7 +217,7 @@ class TLDetector(object):
         if stop_line is not None:
             light = self.get_closest_to_car_in_front(self.lights)
             if light is not None:
-                light_wp = self.get_closest_waypoint(light.pose)
+                light_wp = self.get_closest_waypoint(stop_line)
                 state = self.get_light_state(light)
                 return light_wp, state
 

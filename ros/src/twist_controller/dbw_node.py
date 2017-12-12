@@ -52,7 +52,7 @@ class DBWNode(object):
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.__dbw_enabled_cb)
         self.dbw_enabled = False
 
-        # TODO(when waypoint_updater is ready): remove this
+        # TODO(when waypoint_updater control is ready): remove this
         rospy.Subscriber('/traffic_waypoint', Int32, self.__traffic_waypoint_cb)
         self.traffic_wp = -1
 
@@ -83,10 +83,10 @@ class DBWNode(object):
             # if <dbw is enabled>:
             #   self.publish(throttle, brake, steer)
 
-            # TODO(when waypoint_updater is ready): remove this
+            # TODO(when waypoint_updater control is ready): remove this
             if self.dbw_enabled:
                 if -1 == self.traffic_wp:
-                    self.publish(0.1, 0.0, 0.0)
+                    self.publish(0.5, 0.0, 0.0)
                 else:
                     self.publish(0.0, 100.0, 0.0)
 
@@ -113,7 +113,7 @@ class DBWNode(object):
     def __dbw_enabled_cb(self, dbw_enabled):
         self.dbw_enabled = bool(dbw_enabled.data)
 
-    # TODO(when waypoint_updater is ready): remove this
+    # TODO(when waypoint_updater control is ready): remove this
     def __traffic_waypoint_cb(self, traffic_wp):
         self.traffic_wp = int(traffic_wp.data)
 
