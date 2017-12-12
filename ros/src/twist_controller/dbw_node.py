@@ -86,9 +86,9 @@ class DBWNode(object):
             # TODO(when waypoint_updater is ready): remove this
             if self.dbw_enabled:
                 if -1 == self.traffic_wp:
-                    self.publish(1.0, 0.0, 0.0)
+                    self.publish(0.1, 0.0, 0.0)
                 else:
-                    self.publish(0.0, 1.0, 0.0)
+                    self.publish(0.0, 100.0, 0.0)
 
             rate.sleep()
 
@@ -111,11 +111,11 @@ class DBWNode(object):
         self.brake_pub.publish(bcmd)
 
     def __dbw_enabled_cb(self, dbw_enabled):
-        self.dbw_enabled = dbw_enabled
+        self.dbw_enabled = bool(dbw_enabled.data)
 
     # TODO(when waypoint_updater is ready): remove this
     def __traffic_waypoint_cb(self, traffic_wp):
-        self.traffic_wp = traffic_wp
+        self.traffic_wp = int(traffic_wp.data)
 
 
 if __name__ == '__main__':
