@@ -87,16 +87,16 @@ class DBWNode(object):
                     or self.trgt_ang_vel is None:
                 continue
 
-            # TODO(when waypoint_updater control is ready): remove this
-            if -1 != self.traffic_wp:
-                self.trgt_lin_vel = 0.0
-                self.trgt_ang_vel = 0.0
-
             # Get predicted throttle, brake, and steering using `twist_controller`
             throttle, brake, steer = self.controller.control(self.trgt_lin_vel,
                                                              self.trgt_ang_vel,
                                                              self.curr_lin_vel,
                                                              self.dbw_enabled)
+
+            # TODO(when waypoint_updater control is ready): remove this
+            if -1 != self.traffic_wp:
+                brake = 100
+                throttle = 0
 
             # You should only publish the control commands if dbw is enabled
             if self.dbw_enabled:
