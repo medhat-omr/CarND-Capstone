@@ -114,10 +114,11 @@ class TLDetector(object):
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
 
-    def get_closest_to_car_in_front(self, points):
-        """Identifies the closest point in front of the car
+    def get_light_closest_to_car_in_front(self):
+        """Identifies the closest traffic ling position in front of the car
         Args:
-            points: array of point coordinates in world reference frame
+            lights: array of lights, containing point coordinates in
+            world reference frame
         Returns:
             an element value from the list or None if nothing is found
         """
@@ -127,14 +128,11 @@ class TLDetector(object):
         result = None
         min_dist = np.inf
 
-        for p in points:
-            if type(p) is list:
-                pos_world = np.array(p + [0.0, 1.0])
-            else:
-                pos_world = np.array([p.pose.pose.position.x,
-                                      p.pose.pose.position.y,
-                                      p.pose.pose.position.z,
-                                      1.0])
+        for light in self.lights:
+            pos_world = np.array([light.pose.pose.position.x,
+                                  light.pose.pose.position.y,
+                                  light.pose.pose.position.z,
+                                  1.0])
 
             pos_car = self.world_2_car.dot(pos_world)
             in_front = pos_car[0] > 0
@@ -144,15 +142,44 @@ class TLDetector(object):
             dist = np.linalg.norm(pos_car[:3])
             if dist < min_dist:
                 min_dist = dist
-                result = p
+                result = light
 
         return result
 
-    def get_closest_waypoint(self, pose):
+    def get_closest_stopline_pos3d(self, light):
+        """Returns 3D position of stop-line closest to the given traffic light
+        Args:
+            light: traffic light properties
+        Returns:
+            found stop-line 3D coordinate as numpy array or None if not found
+        """
+        if self.world_2_car is None:
+            return None
+
+        result = None
+        min_dist = np.inf
+
+        stop_line_positions = self.config['stop_line_positions']
+
+        light_pos3d = np.array([light.pose.pose.position.x,
+                                light.pose.pose.position.y,
+                                light.pose.pose.position.z])
+
+
+        for p in stop_line_positions:
+            pos3d = np.array(p + [0.0])
+            dist = np.linalg.norm(light_pos3d - pos3d)
+            if dist < min_dist:
+                min_dist = dist
+                result = pos3d
+
+        return result
+
+    def get_closest_waypoint(self, position):
         """Identifies the closest path waypoint to the given position
             https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
         Args:
-            pose (Pose): position to match a waypoint to
+            position: 3D position to match a waypoint to as numpy array
 
         Returns:
             int: index of the closest waypoint in self.waypoints
@@ -160,11 +187,6 @@ class TLDetector(object):
         """
         if self.waypoints is None:
             return -1
-
-
-        position = np.array([pose[0],
-                             pose[1],
-                             0.0])
 
         result = -1
         min_dist = np.inf
@@ -212,12 +234,11 @@ class TLDetector(object):
 
         """
 
-        stop_line_positions = self.config['stop_line_positions']
-        stop_line = self.get_closest_to_car_in_front(stop_line_positions)
-        if stop_line is not None:
-            light = self.get_closest_to_car_in_front(self.lights)
-            if light is not None:
-                light_wp = self.get_closest_waypoint(stop_line)
+        light = self.get_light_closest_to_car_in_front()
+        if light is not None:
+            stopline_pos = self.get_closest_stopline_pos3d(light)
+            if stopline_pos is not None:
+                light_wp = self.get_closest_waypoint(stopline_pos)
                 state = self.get_light_state(light)
                 return light_wp, state
 
