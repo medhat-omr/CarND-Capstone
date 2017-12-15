@@ -7,6 +7,7 @@ from geometry_msgs.msg import TwistStamped
 import math
 
 from twist_controller import Controller
+from yaw_controller import YawController
 
 '''
 You can build this node only after you have built (or partially built) the `waypoint_updater` node.
@@ -56,7 +57,19 @@ class DBWNode(object):
         # TODO: Create `TwistController` object
         # self.controller = TwistController(<Arguments you wish to provide>)
 
+        # Create `YawController` object
+        min_speed = 0.0
+        self.yaw_controller = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
+
+        self.dbw_enabled = False
+        self.current_velocity = 0
+        self.linear_velocity = 0
+        self.angular_velocity = 0
+
         # TODO: Subscribe to all the topics you need to
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_en_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.cur_vel_cb)
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_cb)
 
         self.loop()
 
@@ -70,8 +83,12 @@ class DBWNode(object):
             #                                                     <current linear velocity>,
             #                                                     <dbw status>,
             #                                                     <any other argument you need>)
-            # if <dbw is enabled>:
-            #   self.publish(throttle, brake, steer)
+            throttle = 1.0
+            brake = 0.0
+            steer = self.yaw_controller.get_steering(self.linear_velocity, self.angular_velocity, self.current_velocity)
+
+            if self.dbw_enabled:
+                self.publish(throttle, brake, steer)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
@@ -91,6 +108,16 @@ class DBWNode(object):
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
         bcmd.pedal_cmd = brake
         self.brake_pub.publish(bcmd)
+
+    def dbw_en_cb(self, msg):
+        self.dbw_enabled = msg
+
+    def cur_vel_cb(self, msg):
+        self.current_velocity = msg.twist.linear.x
+
+    def twist_cmd_cb(self, msg):
+        self.linear_velocity = msg.twist.linear.x
+        self.angular_velocity = msg.twist.angular.z
 
 
 if __name__ == '__main__':
