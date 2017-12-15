@@ -110,7 +110,7 @@ class DBWNode(object):
         self.brake_pub.publish(bcmd)
 
     def dbw_en_cb(self, msg):
-        self.dbw_enabled = msg
+        self.dbw_enabled = msg.data
 
     def cur_vel_cb(self, msg):
         self.current_velocity = msg.twist.linear.x
