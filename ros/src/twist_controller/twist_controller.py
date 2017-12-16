@@ -23,4 +23,7 @@ class Controller(object):
 
         # TODO: Implement all Constraints on Acceleration / Deceleration / Jerk ... etc. using PID, Lowpass Filter etc.
 
-        return 1.0, 0.0, steer
+        if trgt_lin_vel == 0:
+            return 0.0, 1.0, steer
+        else:
+            return 1.0, 0.0, steer
