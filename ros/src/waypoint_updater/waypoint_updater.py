@@ -78,10 +78,14 @@ class WaypointUpdater(object):
                 result_final_wps.waypoints.append(self._base_wps[idx])
 
             # ToDO: Make it function in current car velocity
-            MIN_STOP_DIST = 20 # Assuming intersection length to be 20m
-            MAX_STOP_DIST = 40
+            MIN_STOP_DIST = 25 # Assuming intersection length to be 20m
+            MAX_STOP_DIST_1 = 60
+            MAX_STOP_DIST_2 = 40
 
-            if traffic_light_state != TrafficLight.GREEN and MIN_STOP_DIST < stop_dist < MAX_STOP_DIST:
+            if traffic_light_state == TrafficLight.YELLOW and MAX_STOP_DIST_2 < stop_dist < MAX_STOP_DIST_1:
+                for i in range(LOOKAHEAD_WPS):
+                    self.set_waypoint_velocity(result_final_wps.waypoints, i, 10)
+            elif traffic_light_state == TrafficLight.RED and MIN_STOP_DIST < stop_dist < MAX_STOP_DIST_2:
                 for i in range(LOOKAHEAD_WPS):
                     self.set_waypoint_velocity(result_final_wps.waypoints, i, 0)
             else:
