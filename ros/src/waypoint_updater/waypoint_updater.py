@@ -29,7 +29,8 @@ class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
-        self.base_waypoints = []
+        self.cur_pose = None
+        self.base_waypoints = None
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -43,13 +44,25 @@ class WaypointUpdater(object):
 
         # TODO: Add other member variables you need below
 
-        rospy.spin()
+        #rospy.spin()
+        self.loop()
+
+    def loop(self):
+        rate = rospy.Rate(10) # 50Hz
+        while not rospy.is_shutdown():
+            if (self.cur_pose is None) or \
+                    (self.base_waypoints is None):
+                continue
+
+            final_waypoints = Lane()
+            final_waypoints.waypoints = self.calc_final_waypoints()
+            self.final_waypoints_pub.publish(final_waypoints)
+
+            rate.sleep()
 
     def pose_cb(self, msg):
         # TODO: Implement
-        if self.base_waypoints:
-            final_waypoints = self.calc_final_waypoints(msg.pose)
-            self.final_waypoints_pub.publish(final_waypoints)
+        self.cur_pose = msg.pose
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
@@ -77,24 +90,24 @@ class WaypointUpdater(object):
             wp1 = i
         return dist
 
-    def calc_final_waypoints(self, current_pose):
+    def calc_final_waypoints(self):
         min_idx = -1
         min_dist = float('Inf')
         dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
         for i, waypoint in enumerate(self.base_waypoints):
-            dist = dl(current_pose.position, waypoint.pose.pose.position)
+            dist = dl(self.cur_pose.position, waypoint.pose.pose.position)
             if  dist < min_dist:
                 min_dist = dist
                 min_idx = i
         
-        final_waypoints = Lane()
+        final_waypoints = []
         n_base_waypoints = len(self.base_waypoints)
         for i in range(min_idx+1, min_idx+LOOKAHEAD_WPS+1):
             idx = i % n_base_waypoints
-            final_waypoints.waypoints.append(self.base_waypoints[idx])
+            final_waypoints.append(self.base_waypoints[idx])
 
-        for i in range(len(final_waypoints.waypoints)):
-            self.set_waypoint_velocity(final_waypoints.waypoints, i, 20.0)
+        for i in range(len(final_waypoints)):
+            self.set_waypoint_velocity(final_waypoints, i, 20.0)
 
         return final_waypoints
 
