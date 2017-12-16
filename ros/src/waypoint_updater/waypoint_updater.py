@@ -4,6 +4,7 @@ import rospy
 import sys
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint, TrafficLightArray, TrafficLight
+from std_msgs.msg import Int32
 
 import math
 
@@ -31,18 +32,14 @@ class WaypointUpdater(object):
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)  # Should be published only once
-        rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_waypoint_cb)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
         self._base_wps = None
         self._curr_pose = None
-        self._traffic_wps = None
-        self._n_traffic_wps = 0
+        self._traffic_wp_idx = None
         self._is_initialized = False
 
         # rospy.spin()
@@ -54,45 +51,45 @@ class WaypointUpdater(object):
         result_final_wps = Lane()
 
         while not rospy.is_shutdown():
-            if self._base_wps is None or self._curr_pose is None or self._traffic_wps is None:
+            if self._base_wps is None or self._curr_pose is None or self._traffic_wp_idx is None:
                 continue
 
             # Step 1: find nearest base point and traffic light
             nearest_wp_idx = self.find_nearest_wp()
-            nearest_traffic_wp_idx = self.find_nearest_traffic_wp()
-
-            traffic_light_state = self._traffic_wps.lights[nearest_traffic_wp_idx].state
 
             # Step 2: Form final waypoints msg
-            stop_dist = \
-                self.euclidean_dist(self._base_wps[nearest_wp_idx].pose.pose.position,
-                                    self._traffic_wps.lights[nearest_traffic_wp_idx].pose.pose.position)
-
-            print('Neartest WP Idx: {0} \t while Nearest Traffic WP Idx: {1}, \t number of Traffic Lights: {2} \
-                  \t stop_dist: {3}'.format(
-                  nearest_wp_idx, nearest_traffic_wp_idx, self._n_traffic_wps, stop_dist))
+            # ToDO: Make it function in current car velocity
+            MAX_STOP_DIST = 60
+            MIN_STOP_DIST = 20
+            MAX_VELOCITY = 20
 
             result_final_wps.waypoints = []
-            for i in range(nearest_wp_idx, nearest_wp_idx + LOOKAHEAD_WPS + 1):
+            cross_stop_line = False
+            for i in xrange(nearest_wp_idx, nearest_wp_idx + LOOKAHEAD_WPS + 1):
                 idx = i % self._n_base_wps
                 result_final_wps.waypoints.append(self._base_wps[idx])
 
-            # ToDO: Make it function in current car velocity
-            MIN_STOP_DIST = 25 # Assuming intersection length to be 20m
-            MAX_STOP_DIST_1 = 60
-            MAX_STOP_DIST_2 = 40
+                velocity = MAX_VELOCITY
 
-            if traffic_light_state == TrafficLight.YELLOW and MAX_STOP_DIST_2 < stop_dist < MAX_STOP_DIST_1:
-                for i in range(LOOKAHEAD_WPS):
-                    self.set_waypoint_velocity(result_final_wps.waypoints, i, 10)
-            elif traffic_light_state == TrafficLight.RED and MIN_STOP_DIST < stop_dist < MAX_STOP_DIST_2:
-                for i in range(LOOKAHEAD_WPS):
-                    self.set_waypoint_velocity(result_final_wps.waypoints, i, 0)
-            else:
-                for i in range(LOOKAHEAD_WPS):
-                    self.set_waypoint_velocity(result_final_wps.waypoints, i, 20.0)
+                if -1 != self._traffic_wp_idx:
+                    if idx == self._traffic_wp_idx:
+                        cross_stop_line = True
 
-            # Step 3: publish to final_waypoints topic
+                    if cross_stop_line:
+                        velocity = 0
+                    else:
+                        # Gradually decrease linear velocity to 0 near RED traffic light stopline
+                        stop_dist = self.distance(self._base_wps, idx, self._traffic_wp_idx)
+
+                        if stop_dist < MIN_STOP_DIST:
+                            velocity = 0
+                        elif stop_dist < MAX_STOP_DIST:
+                            velocity = (stop_dist - MIN_STOP_DIST) / \
+                                       (MAX_STOP_DIST - MIN_STOP_DIST) * MAX_VELOCITY
+
+                self.set_waypoint_velocity(result_final_wps.waypoints, -1, velocity)
+
+            # Step 4: publish to final_waypoints topic
             self.final_waypoints_pub.publish(result_final_wps)
             rate.sleep()
 
@@ -106,15 +103,8 @@ class WaypointUpdater(object):
             self._n_base_wps = len(self._base_wps)
             self._is_initialized = True
 
-    def traffic_cb(self, traffic_wp_msg):
-        """Callback for /traffic_waypoint message."""
-        self._traffic_wps = traffic_wp_msg
-        self._n_traffic_wps = len(self._traffic_wps.lights)
-        pass
-
-    def obstacle_cb(self, msg):
-        # TODO: Callback for /obstacle_waypoint message. We will implement it later
-        pass
+    def traffic_waypoint_cb(self, traffic_wp):
+        self._traffic_wp_idx = int(traffic_wp.data)
 
     def get_waypoint_velocity(self, waypoint):
         return waypoint.twist.twist.linear.x
@@ -127,9 +117,20 @@ class WaypointUpdater(object):
 
     def distance(self, waypoints, wp1, wp2):
         dist = 0
+
+        # To deal with circular indexing
+        if wp2 < wp1:
+            wp2 += self._n_base_wps
+
         for i in range(wp1, wp2+1):
-            dist += self.euclidean_dist(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-            wp1 = i
+            idx = i % self._n_base_wps
+
+            dist += self.euclidean_dist(
+                waypoints[wp1].pose.pose.position,
+                waypoints[idx].pose.pose.position)
+
+            wp1 = idx
+
         return dist
 
     def find_nearest_wp(self):
@@ -139,19 +140,6 @@ class WaypointUpdater(object):
         nearest_idx = -1
         for i in range(self._n_base_wps):
             dist = self.euclidean_dist(self._curr_pose.position, self._base_wps[i].pose.pose.position)
-            if dist < nearest_dist:
-                nearest_dist = dist
-                nearest_idx = i
-
-        return nearest_idx
-
-    def find_nearest_traffic_wp(self):
-        # Find the nearest traffic waypoint
-        # TODO: Find the closest traffic waypoint in front of the car instead of the absolute closest
-        nearest_dist = sys.maxint
-        nearest_idx = -1
-        for i in range(self._n_traffic_wps):
-            dist = self.euclidean_dist(self._curr_pose.position, self._traffic_wps.lights[i].pose.pose.position)
             if dist < nearest_dist:
                 nearest_dist = dist
                 nearest_idx = i
