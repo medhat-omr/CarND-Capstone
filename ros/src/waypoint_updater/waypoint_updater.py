@@ -106,8 +106,8 @@ class WaypointUpdater(object):
             idx = i % n_base_waypoints
             final_waypoints.append(self.base_waypoints[idx])
 
-        for i in range(len(final_waypoints)):
-            self.set_waypoint_velocity(final_waypoints, i, 20.0)
+        # for i in range(len(final_waypoints)):
+        #     self.set_waypoint_velocity(final_waypoints, i, 20.0)
 
         return final_waypoints
 
