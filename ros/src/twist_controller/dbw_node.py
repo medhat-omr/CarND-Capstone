@@ -7,7 +7,6 @@ from geometry_msgs.msg import TwistStamped
 import math
 
 from twist_controller import Controller
-from yaw_controller import YawController
 
 '''
 You can build this node only after you have built (or partially built) the `waypoint_updater` node.
@@ -55,11 +54,7 @@ class DBWNode(object):
                                          BrakeCmd, queue_size=1)
 
         # TODO: Create `TwistController` object
-        # self.controller = TwistController(<Arguments you wish to provide>)
-
-        # Create `YawController` object
-        min_speed = 0.0
-        self.yaw_controller = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
+        self.controller = Controller(wheel_base, steer_ratio, max_lat_accel, max_steer_angle)
 
         self.dbw_enabled = False
         self.current_velocity = 0
@@ -78,14 +73,10 @@ class DBWNode(object):
         while not rospy.is_shutdown():
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
-            # throttle, brake, steering = self.controller.control(<proposed linear velocity>,
-            #                                                     <proposed angular velocity>,
-            #                                                     <current linear velocity>,
-            #                                                     <dbw status>,
-            #                                                     <any other argument you need>)
-            throttle = 1.0
-            brake = 0.0
-            steer = self.yaw_controller.get_steering(self.linear_velocity, self.angular_velocity, self.current_velocity)
+            throttle, brake, steer = self.controller.control(self.linear_velocity,
+                                                             self.angular_velocity,
+                                                             self.current_velocity,
+                                                             self.dbw_enabled)
 
             if self.dbw_enabled:
                 self.publish(throttle, brake, steer)
