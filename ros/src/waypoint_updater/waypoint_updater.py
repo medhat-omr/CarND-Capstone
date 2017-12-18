@@ -23,7 +23,9 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
-SPEED = 20.
+
+CMD_RATE = 10.0 # 50Hz
+SPEED = 50.0 # mph
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -48,7 +50,7 @@ class WaypointUpdater(object):
         self.loop()
 
     def loop(self):
-        rate = rospy.Rate(10) # 50Hz
+        rate = rospy.Rate(CMD_RATE)
         while not rospy.is_shutdown():
             if (self.cur_pose is None) or \
                     (self.base_waypoints is None):
