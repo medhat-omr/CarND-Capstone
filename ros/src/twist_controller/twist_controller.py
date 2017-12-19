@@ -10,8 +10,8 @@ MIN_SPEED = 0.0
 KP = 0.1
 KI = 0.0001
 KD = 10.0
-MIN_VAL = -1.0
-MAX_VAL = 1.0
+MIN_VAL = -5.0
+MAX_VAL = 5.0
 
 class Controller(object):
     def __init__(self, wheel_base, steer_ratio, max_lat_accel, max_steer_angle,
@@ -34,21 +34,15 @@ class Controller(object):
 
         error = linear_velocity - current_velocity
         dt = 1.0 / CMD_RATE
-        ctrl_val = self.pid_controller.step(error, dt)
+        accel = self.pid_controller.step(error, dt)
 
         throttle = 0.0
         brake = 0.0
 
-        if ctrl_val > 0.0:
-            delta_v = (ctrl_val/MAX_VAL) * current_velocity * ONE_MPH # mph -> m/s
-            accel = delta_v / dt
-            if accel < self._accel_limit:
-                throttle = ctrl_val / MAX_VAL
+        if accel > 0.0:
+            throttle = accel / MAX_VAL
 
-        if ctrl_val/MIN_VAL > self._brake_deadband:
-            delta_v = (ctrl_val/MIN_VAL) * current_velocity * ONE_MPH # mph -> m/s
-            decel = delta_v / dt
-            if decel < -self._decel_limit:
-                brake = decel * self._vehicle_mass * self._wheel_radius
+        if accel < -self._brake_deadband:
+            brake = -accel * self._vehicle_mass * self._wheel_radius
 
         return throttle, brake, steer
