@@ -30,7 +30,8 @@ Once you have the proposed throttle, brake, and steer values, publish it on the 
 that we have created in the `__init__` function.
 
 '''
-CMD_RATE = 50 # 50Hz
+
+CMD_RATE = 10 # 10Hz
 
 class DBWNode(object):
     def __init__(self):
@@ -54,8 +55,8 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        self.controller = Controller(wheel_base, steer_ratio, max_lat_accel,
-                                     max_steer_angle)
+        self.controller = Controller(wheel_base, steer_ratio, max_lat_accel, max_steer_angle,
+                                     vehicle_mass, wheel_radius, brake_deadband)
 
         # Subscribe to all needed topics
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)

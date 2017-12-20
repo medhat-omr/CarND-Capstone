@@ -25,6 +25,9 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 CMD_RATE = 10 # 10Hz
+ONE_KPH = 1000.0 / 3600
+# velocity in simulator is 40 k/h
+MAX_VELOCITY = 40 * ONE_KPH
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -61,7 +64,7 @@ class WaypointUpdater(object):
             # ToDO: Make it function in current car velocity
             MAX_STOP_DIST = 60
             MIN_STOP_DIST = 20
-            MAX_VELOCITY = 20
+            # MAX_VELOCITY = 20
 
             result_final_wps.waypoints = []
             cross_stop_line = False
