@@ -7,8 +7,8 @@ ONE_MPH = 0.44704
 CMD_RATE = 10 # 10Hz
 MIN_SPEED = 0.0
 KP = 1.0
-KI = 0.0001
-KD = 10.0
+KI = 0.5
+KD = 0.0
 MAX_ACCEL = 5.0
 
 class Controller(object):
