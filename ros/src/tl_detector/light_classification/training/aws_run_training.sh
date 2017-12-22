@@ -1,15 +1,17 @@
 #!/usr/bin/env sh
 
 function show_help {
-    echo Syntax: ./run_training_on_aws.sh "keyname.pem" udacity-aws-server-address-without-username
-    echo
-    echo Example:
-    echo ./run_training_on_aws.sh "demo.pem" ec2-54-201-21-164.us-west-2.compute.amazonaws.com
+    echo Usage example: ./run_training_on_aws.sh "demo.pem" ec2-54-201-21-164.us-west-2.compute.amazonaws.com
 }
 
 function run_training {
-    echo ssh -q -i "$1" ubuntu@$2 'bash -s' < ./aws_server_scripts/to_be_run_on_aws.sh
-    ssh -q -i "$1" ubuntu@$2 'bash -s' < ./aws_server_scripts/to_be_run_on_aws.sh
+    GITHUB_URL="$(git config --get remote.origin.url | sed 's/git@github.com:/https:\/\/github.com\//')"
+    GIT_BRANCH="$(git branch | grep \* | cut -d ' ' -f2)"
+    AWS_PARAMS="-i "$1" ubuntu@$2"
+    ssh ${AWS_PARAMS} "git clone ${GITHUB_URL}"
+    ssh ${AWS_PARAMS} "git checkout -b ${GIT_BRANCH} origin/${GIT_BRANCH}"
+    ssh ${AWS_PARAMS} 'bash -s' < ./aws_server_scripts/to_be_run_on_aws.sh
+    sftp ${AWS_PARAMS}/CarND-Capstone/ros/src/tl_detector/light_classification/training .
 }
 
 if [ $# != 2 ]; then
