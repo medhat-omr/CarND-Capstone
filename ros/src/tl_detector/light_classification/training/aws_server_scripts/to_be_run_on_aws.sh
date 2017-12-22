@@ -16,5 +16,3 @@ cd ~/CarND-Capstone/ros/src/tl_detector/light_classification/training
 
 unpack_zip_from_gdrive bosch-dataset.zip 195tf4MTzzZpO1Sft5RLY5E4B6OgkmykN
 unpack_zip_from_gdrive dataset-sdcnd-capstone.zip 168a_xIMaVoMSaC4ayvzbZjizmAp77mJi
-
-python run_training.py
