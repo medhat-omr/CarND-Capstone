@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import tensorflow as tf
+# TODO: import tensorflow as tf
 
 # TODO: implement your training script here
 # Note that AWS server runs it under Python3.6.1
