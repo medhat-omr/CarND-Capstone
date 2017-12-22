@@ -2,7 +2,7 @@
 
 import rospy
 import sys
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
 from styx_msgs.msg import Lane, Waypoint, TrafficLightArray, TrafficLight
 from std_msgs.msg import Int32
 
@@ -24,10 +24,10 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
-CMD_RATE = 10 # 10Hz
+CMD_RATE = 50 # 50Hz
 ONE_KPH = 1000.0 / 3600
-# velocity in simulator is 40 k/h
-MAX_VELOCITY = 40 * ONE_KPH
+# velocity in simulator is 40 km/h
+# MAX_VELOCITY = 40 * ONE_KPH
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -36,6 +36,7 @@ class WaypointUpdater(object):
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)  # Should be published only once
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_waypoint_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_cb)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
@@ -59,38 +60,101 @@ class WaypointUpdater(object):
 
             # Step 1: find nearest base point and traffic light
             nearest_wp_idx = self.find_nearest_wp()
+            idx = nearest_wp_idx % self._n_base_wps
 
             # Step 2: Form final waypoints msg
-            # ToDO: Make it function in current car velocity
-            MAX_STOP_DIST = 60
             MIN_STOP_DIST = 20
-            # MAX_VELOCITY = 20
+            vm = rospy.get_param('/waypoint_loader/velocity') * ONE_KPH * 0.95 # 5% safety factor to allow
+                                                                               # for overshoot
+            c = min(0.2, 2.0 / vm) # m/s / m
+            v0 = self.curr_lin_vel
 
             result_final_wps.waypoints = []
             cross_stop_line = False
+            case = 0
+
+            x1 = -1.0
+            x2 = -1.0
+            xf = -10.0
+
+            # no light
+            if -1 == self._traffic_wp_idx:
+                if v0 < vm:
+                    x1 = (vm - v0) / c
+                case = 0
+
+            # red light,
+            if -1 != self._traffic_wp_idx:
+                xf = self.distance(self._base_wps, idx, self._traffic_wp_idx) - MIN_STOP_DIST
+                # close - stop
+                if (xf <= (v0 / c)):
+                    case = 1
+
+                # medium - speed up then stop
+                if ((v0 / c) < xf <= ((vm - v0) / c + vm / c)):
+                    x1 = (c * xf - v0) / (2 * c)
+                    case = 2
+
+                # far- speed up to max speed, then cruise, then stop
+                if (xf > ((vm - v0) / c + vm / c)):
+                    x1 = (vm - v0) / c
+                    x2 = xf - vm / c
+                    case = 3
+
             for i in xrange(nearest_wp_idx, nearest_wp_idx + LOOKAHEAD_WPS + 1):
                 idx = i % self._n_base_wps
                 result_final_wps.waypoints.append(self._base_wps[idx])
 
-                velocity = MAX_VELOCITY
+                x = self.distance(self._base_wps, nearest_wp_idx, i)
+                dv = 0.2
+                v = 0.0
+                # no traffic light
+                if case == 0:
+                    if (x <= x1):
+                        v = v0 + c * x
+                        v = min(v + dv, vm)
+                    else:
+                        v = vm
 
-                if -1 != self._traffic_wp_idx:
+                # red light, close
+                if (case == 1):
+                    if (x <= xf):
+                        v = c * (xf - x)
+                        v = max(v - dv, 0.0)
+                    else:
+                        v = 0
+
+                # red light, medium
+                if (case == 2):
+                    if (x <= x1):
+                        v = v0 + c * x
+                        v = min(v + dv, vm)
+                    elif (x1 < x <= xf):
+                        v = c * (xf - x)
+                        v = max(v - dv, 0.0)
+                    else:
+                        v = 0
+
+                # red light, far
+                if ( case == 3):
+                    if (x <= x1):
+                        v = v0 + c * x
+                        v = min(v + dv, vm)
+                    elif (x1 < x <= x2):
+                        v = vm
+                    elif (x2 < x <= xf):
+                        v = vm - c * (x - x2)
+                        v = max(v - dv, 0.0)
+                    else:
+                        v = 0
+
                     if idx == self._traffic_wp_idx:
                         cross_stop_line = True
 
                     if cross_stop_line:
-                        velocity = 0
-                    else:
-                        # Gradually decrease linear velocity to 0 near RED traffic light stopline
-                        stop_dist = self.distance(self._base_wps, idx, self._traffic_wp_idx)
+                        v = 0
 
-                        if stop_dist < MIN_STOP_DIST:
-                            velocity = 0
-                        elif stop_dist < MAX_STOP_DIST:
-                            velocity = (stop_dist - MIN_STOP_DIST) / \
-                                       (MAX_STOP_DIST - MIN_STOP_DIST) * MAX_VELOCITY
-
-                self.set_waypoint_velocity(result_final_wps.waypoints, -1, velocity)
+                self.set_waypoint_velocity(result_final_wps.waypoints, -1, v)
 
             # Step 4: publish to final_waypoints topic
             self.final_waypoints_pub.publish(result_final_wps)
@@ -135,6 +199,10 @@ class WaypointUpdater(object):
             wp1 = idx
 
         return dist
+
+    # Callback function for current_velocity
+    def current_velocity_cb(self, twist_stamped_msg):
+        self.curr_lin_vel = twist_stamped_msg.twist.linear.x
 
     def find_nearest_wp(self):
         # Find the nearest waypoint

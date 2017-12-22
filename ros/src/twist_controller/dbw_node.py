@@ -31,7 +31,7 @@ that we have created in the `__init__` function.
 
 '''
 
-CMD_RATE = 10 # 10Hz
+CMD_RATE = 50 # 50Hz
 
 class DBWNode(object):
     def __init__(self):
@@ -55,8 +55,9 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        self.controller = Controller(wheel_base, steer_ratio, max_lat_accel, max_steer_angle,
-                                     vehicle_mass, wheel_radius, brake_deadband)
+        self.controller = Controller(wheel_base, steer_ratio, max_lat_accel,
+                                     max_steer_angle, vehicle_mass, wheel_radius,
+                                     brake_deadband, decel_limit, accel_limit)
 
         # Subscribe to all needed topics
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
