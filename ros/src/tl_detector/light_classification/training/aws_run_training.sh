@@ -7,7 +7,7 @@ function show_help {
 function run_training {
     GITHUB_URL="$(git config --get remote.origin.url | sed 's/git@github.com:/https:\/\/github.com\//')"
     GIT_BRANCH="$(git branch | grep \* | cut -d ' ' -f2)"
-    AWS_PARAMS="-i '$1' ubuntu@$2"
+    AWS_PARAMS="-i "$1" ubuntu@$2"
     TRAINING_FOLDER="~/CarND-Capstone/ros/src/tl_detector/light_classification/training"
 
     ssh ${AWS_PARAMS} "git clone ${GITHUB_URL}"
