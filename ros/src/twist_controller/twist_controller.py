@@ -5,7 +5,7 @@ GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
 
 CMD_RATE = 50 # 50Hz
-MIN_SPEED = ONE_MPH # why not 0.0?!
+MIN_SPEED = 0.0
 # set PID parameters
 KP = 1.0
 KI = 0.5
@@ -42,8 +42,9 @@ class Controller(object):
         if acc > 0.0:
             throttle = acc / self._accel_limit
 
-        if acc < -self._brake_deadband:
-            brake = -1.0 * acc * self._vehicle_mass * self._wheel_radius
+        if acc < 0:
+            if -acc > self._brake_deadband: # decel > brake deadband
+                brake = -acc * self._vehicle_mass * self._wheel_radius
 
         # why do we need this?!
         # if (err**2 < 0.1):

@@ -45,17 +45,19 @@ class WaypointUpdater(object):
         self._curr_pose = None
         self._traffic_wp_idx = None
         self._is_initialized = False
+        self._curr_lin_vel = None
+        self._max_velocity = rospy.get_param('/waypoint_loader/velocity') * ONE_KPH
 
         # rospy.spin()
         self.loop()     # I am not sure if this is the most correct way instead of using spin() ?
-
 
     def loop(self):
         rate = rospy.Rate(CMD_RATE)
         result_final_wps = Lane()
 
         while not rospy.is_shutdown():
-            if self._base_wps is None or self._curr_pose is None or self._traffic_wp_idx is None:
+            if self._base_wps is None or self._curr_pose is None or self._traffic_wp_idx is None \
+                    or self._curr_lin_vel is None:
                 continue
 
             # Step 1: find nearest base point and traffic light
@@ -64,10 +66,9 @@ class WaypointUpdater(object):
 
             # Step 2: Form final waypoints msg
             MIN_STOP_DIST = 20
-            vm = rospy.get_param('/waypoint_loader/velocity') * ONE_KPH * 0.95 # 5% safety factor to allow
-                                                                               # for overshoot
+            vm = self._max_velocity * 0.95 # 5% safety factor to allow for overshoot
             c = min(0.2, 2.0 / vm) # m/s / m
-            v0 = self.curr_lin_vel
+            v0 = self._curr_lin_vel
 
             result_final_wps.waypoints = []
             cross_stop_line = False
@@ -160,7 +161,6 @@ class WaypointUpdater(object):
             self.final_waypoints_pub.publish(result_final_wps)
             rate.sleep()
 
-
     def pose_cb(self, pose_stamped_msg):
         self._curr_pose = pose_stamped_msg.pose
 
@@ -202,7 +202,7 @@ class WaypointUpdater(object):
 
     # Callback function for current_velocity
     def current_velocity_cb(self, twist_stamped_msg):
-        self.curr_lin_vel = twist_stamped_msg.twist.linear.x
+        self._curr_lin_vel = twist_stamped_msg.twist.linear.x
 
     def find_nearest_wp(self):
         # Find the nearest waypoint
