@@ -24,7 +24,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
-CMD_RATE = 50 # 50Hz
+CMD_RATE = 10 # 50Hz
 ONE_KPH = 1000.0 / 3600
 # velocity in simulator is 40 km/h
 # MAX_VELOCITY = 40 * ONE_KPH

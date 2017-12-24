@@ -4,7 +4,7 @@ from pid import PID
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
 
-CMD_RATE = 50 # 50Hz
+CMD_RATE = 10 # 50Hz
 MIN_SPEED = ONE_MPH
 
 class Controller(object):
