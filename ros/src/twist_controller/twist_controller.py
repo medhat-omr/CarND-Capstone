@@ -6,10 +6,6 @@ ONE_MPH = 0.44704
 
 CMD_RATE = 50 # 50Hz
 MIN_SPEED = ONE_MPH
-# set PID parameters
-KP = 1.0
-KI = 0.5
-KD = 0.0
 
 class Controller(object):
     def __init__(self, wheel_base, steer_ratio, max_lat_accel, max_steer_angle,
@@ -22,7 +18,7 @@ class Controller(object):
         # create YawController and PID objects
         self.yaw_controller = YawController(wheel_base, steer_ratio, MIN_SPEED,
                                             max_lat_accel, max_steer_angle)
-        self.pid = PID(kp=KP, ki=KI, kd=KD, mn=self._decel_limit, mx=self._accel_limit)
+        self.pid = PID(kp=0.5, ki=0.5, kd=0.01, mn=self._decel_limit, mx=self._accel_limit)
 
     def control(self, trgt_lin_vel, trgt_ang_vel, curr_lin_vel, dbw_enabled):
         # If dbw was disabled
