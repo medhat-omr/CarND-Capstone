@@ -38,15 +38,15 @@ class Controller(object):
         if acc > 0.0:
             throttle = acc / self._accel_limit
 
-        # if acc < 0:
-        #     if -acc > self._brake_deadband: # decel > brake deadband
-        #         brake = -acc * self._vehicle_mass * self._wheel_radius
+        if acc < 0:
+            if -acc > self._brake_deadband: # decel > brake deadband
+                brake = -acc * self._vehicle_mass * self._wheel_radius
 
-        # This doesn't look to me as the correct way for applying deadband; may revisit this later
-        if acc <= 0.0:
-            brake = -1.0 * (acc - self._brake_deadband) * self._vehicle_mass * self._wheel_radius
-            # why do we need this?!
-            if (err**2 < 0.1):
-                self.pid.reset()
+        # # This doesn't look to me as a correct way for applying deadband; may revisit if needed
+        # if acc <= 0.0:
+        #     brake = -1.0 * (acc - self._brake_deadband) * self._vehicle_mass * self._wheel_radius
+        #     # why do we need this?!
+        #     if (err**2 < 0.1):
+        #         self.pid.reset()
 
         return throttle, brake, steer
