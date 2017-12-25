@@ -3,7 +3,7 @@ from pid import PID
 
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
-CMD_RATE = 50
+CMD_RATE = 50 # 50 Hz
 
 class Controller(object):
     def __init__(self, wheel_base, steer_ratio, max_lat_accel, max_steer_angle):

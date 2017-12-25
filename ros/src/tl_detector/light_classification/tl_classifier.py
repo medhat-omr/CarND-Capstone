@@ -11,7 +11,7 @@ MIN_SCORE_VALUE = 0.2
 MIN_NORMED_HEIGHT = 0.08
 
 def label_to_traffic_light(cls):
-    if 0 == cls:
+    if 3 == cls:
         return TrafficLight.YELLOW
     elif 1 == cls:
         return TrafficLight.GREEN
@@ -112,9 +112,10 @@ class TLClassifier(object):
                 max_total_score = s
                 max_result = i
 
-        # Set True to output detection and classification results
-        # TODO: Set False for final testing (before Project Submission)
-        if True:
+        # Set True to output detection and classification results. Will work
+        # only if you have graphical environment on your ROS Ubuntu machine,
+        # like XWindow
+        if False:
             print max_total_score, max_result
             draw_bboxes(image, boxes, classes, scores,)
             cv2.imshow("camera", image)
