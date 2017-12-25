@@ -3,6 +3,7 @@ import cv2
 import tensorflow as tf
 import os.path
 import numpy as np
+import time
 
 SCRIPT_FOLDER = os.path.dirname(__file__)
 INFERENCE_GRAPH = os.path.join(SCRIPT_FOLDER, "training/training_results.pb")
@@ -83,12 +84,16 @@ class TLClassifier(object):
         """
         image_expanded = np.expand_dims(image, axis=0)
 
+        time0 = time.time()
+
         (boxes, scores, classes, _) = self.session.run(
             [self.detection_boxes,
              self.detection_scores,
              self.detection_classes,
              self.num_detections],
             feed_dict={self.image_tensor: image_expanded})
+
+        time1 = time.time()
 
         boxes = np.squeeze(boxes)
         scores = np.squeeze(scores)
@@ -116,7 +121,9 @@ class TLClassifier(object):
         # only if you have graphical environment on your ROS Ubuntu machine,
         # like XWindow
         if False:
-            print max_total_score, max_result
+            print "Classification time", (time1 - time0) * 1000.0, "ms"
+            print "score, result", max_total_score, max_result
+            print
             draw_bboxes(image, boxes, classes, scores,)
             cv2.imshow("camera", image)
             cv2.waitKey(1)
