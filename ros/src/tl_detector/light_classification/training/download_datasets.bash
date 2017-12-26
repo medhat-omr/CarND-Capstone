@@ -1,4 +1,6 @@
-#!/usr/bin/env sh
+#!/bin/bash
+
+# Downloads datasets to the machine and folder the script is run from
 
 function download_file {
     FILE_NAME=$1
