@@ -52,8 +52,13 @@ def draw_bboxes(image, boxes, classes, scores):
 
 class TLClassifier(object):
     def __init__(self):
+        config = tf.ConfigProto()
+
+        config.graph_options.optimizer_options.global_jit_level = \
+            tf.OptimizerOptions.ON_1
+
         detection_graph = tf.Graph()
-        self.session = tf.Session(graph=detection_graph)
+        self.session = tf.Session(graph=detection_graph, config=config)
 
         with detection_graph.as_default():
             od_graph_def = tf.GraphDef()
@@ -63,11 +68,12 @@ class TLClassifier(object):
                 od_graph_def.ParseFromString(serialized_graph)
                 tf.import_graph_def(od_graph_def, name='')
 
+        print "Number of graph operations", len(detection_graph.get_operations())
+
         self.image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
         self.detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
         self.detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
         self.detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
-        self.num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
     def __del__(self):
         self.session.close()
@@ -86,11 +92,10 @@ class TLClassifier(object):
 
         time0 = time.time()
 
-        (boxes, scores, classes, _) = self.session.run(
+        (boxes, scores, classes) = self.session.run(
             [self.detection_boxes,
              self.detection_scores,
-             self.detection_classes,
-             self.num_detections],
+             self.detection_classes],
             feed_dict={self.image_tensor: image_expanded})
 
         time1 = time.time()
