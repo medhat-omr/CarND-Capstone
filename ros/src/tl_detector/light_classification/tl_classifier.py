@@ -129,8 +129,8 @@ class TLClassifier(object):
             print "Classification time", (time1 - time0) * 1000.0, "ms"
             print "score, result", max_total_score, max_result
             print
-            draw_bboxes(image, boxes, classes, scores,)
-            cv2.imshow("camera", image)
-            cv2.waitKey(1)
+            #draw_bboxes(image, boxes, classes, scores,)
+            #cv2.imshow("camera", image)
+            #cv2.waitKey(1)
 
         return max_result

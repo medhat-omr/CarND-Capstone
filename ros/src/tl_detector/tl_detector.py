@@ -124,7 +124,11 @@ class TLDetector(object):
             return None
 
         result = None
-        min_dist = np.inf
+
+        # Return None for distant traffic lights to turn off classification
+        # procedure, which is very resource intensive and causes latency
+        # problems
+        min_dist = 50.0
 
         for light in self.lights:
             pos_world = np.array([light.pose.pose.position.x,
