@@ -5,4 +5,3 @@ dataset-sdcnd-capstone.zip
 ./dataset-sdcnd-capstone/*
 ./_dataset-sdcnd-capstone/*
 ./models/*
-training_results.pb
