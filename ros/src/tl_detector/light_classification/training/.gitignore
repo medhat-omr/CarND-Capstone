@@ -7,4 +7,5 @@ _bosch_dataset.record
 ssd_mobilenet_v1_coco_2017_11_17
 _ssd_mobilenet_v1_coco_2017_11_17
 ./training_results/*
+./training_intermediate/*
 ./models/*

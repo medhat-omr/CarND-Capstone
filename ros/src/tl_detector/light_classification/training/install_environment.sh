@@ -21,7 +21,7 @@ fi
 # Workaround to enable training scripts outside Jupyter notebook
 echo backend:TkAgg >~/.matplotlib/matplotlibrc
 
-git clone https://github.com/tensorflow/models
+git clone https://github.com/dimaga/models
 
 cd models/research
 protoc object_detection/protos/*.proto --python_out=.
