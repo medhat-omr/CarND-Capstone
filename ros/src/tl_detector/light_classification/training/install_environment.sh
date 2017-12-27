@@ -7,16 +7,22 @@
 
 conda create -n carnd-capstone python=3.6
 source activate carnd-capstone
-pip install -r requirements.txt
-
-git clone https://github.com/tensorflow/models
 
 if hash apt-get 2>/dev/null; then
+    # Ubuntu configuration
+    pip install -r requirements_ubuntu.txt
     apt-get install protobuf-compiler
 else
+    # Mac OS configuration
+    pip install -r requirements_macos.txt
     brew install protobuf-compiler
 fi
 
+# Workaround to enable training scripts outside Jupyter notebook
+echo backend:TkAgg >~/.matplotlib/matplotlibrc
+
+git clone https://github.com/tensorflow/models
+
 cd models/research
 protoc object_detection/protos/*.proto --python_out=.
-export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
+export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim:`pwd`/object_detection

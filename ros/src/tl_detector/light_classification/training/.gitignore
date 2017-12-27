@@ -1,7 +1,10 @@
-bosch-dataset.zip
-./bosch-dataset/*
-./_bosch-dataset/*
-dataset-sdcnd-capstone.zip
-./dataset-sdcnd-capstone/*
-./_dataset-sdcnd-capstone/*
+dataset_sdcnd_capstone_sim_data.record
+_dataset_sdcnd_capstone_sim_data.record
+dataset_sdcnd_capstone_real_data.record
+_dataset_sdcnd_capstone_real_data.record
+bosch_dataset.record
+_bosch_dataset.record
+ssd_mobilenet_v1_coco_2017_11_17
+_ssd_mobilenet_v1_coco_2017_11_17
+./training_results/*
 ./models/*
