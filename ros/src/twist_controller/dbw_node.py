@@ -6,7 +6,7 @@ from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped
 import math
 
-from twist_controller import Controller
+from twist_controller import Controller, CMD_RATE
 
 '''
 You can build this node only after you have built (or partially built) the `waypoint_updater` node.
@@ -30,8 +30,6 @@ Once you have the proposed throttle, brake, and steer values, publish it on the 
 that we have created in the `__init__` function.
 
 '''
-
-CMD_RATE = 10 # 10Hz
 
 class DBWNode(object):
     def __init__(self):
