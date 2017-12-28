@@ -4,7 +4,7 @@ from pid import PID
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
 
-CMD_RATE = 10 # 10Hz
+CMD_RATE = 50 # 10Hz
 # TODO: set CMD_RATE = 50 or, at least 20 for Carla to avoid autopilot disengagement
 
 MIN_SPEED = 0.0
