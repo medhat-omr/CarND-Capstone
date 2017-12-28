@@ -11,12 +11,19 @@ function show_help {
 }
 
 function install_and_download {
-    AWS_PARAMS="-i "$1" ubuntu@$2"
+    PEM="-i "$1""
+    SERVER="ubuntu@$2"
     TRAINING_FOLDER=training
    
-    ssh ${AWS_PARAMS} "mkdir ${TRAINING_FOLDER}"
-    ssh ${AWS_PARAMS} "cd ~/${TRAINING_FOLDER} && bash -s" <install_environment.bash
-    ssh ${AWS_PARAMS} "cd ~/${TRAINING_FOLDER} && bash -s" <download_datasets.bash
+    ssh ${PEM} ${SERVER} "mkdir ${TRAINING_FOLDER}"
+
+    scp ${PEM} install_environment.bash ${SERVER}:${TRAINING_FOLDER}
+    scp ${PEM} requirements_ubuntu.txt ${SERVER}:${TRAINING_FOLDER}
+    ssh ${PEM} ${SERVER}
+    #ssh ${PEM} ${SERVER} "cd ~/${TRAINING_FOLDER} && ./install_environment.bash"
+
+    scp ${PEM} download_datasets.bash ${SERVER}:${TRAINING_FOLDER}
+    ssh ${PEM} ${SERVER} "cd ~/${TRAINING_FOLDER} && ./download_datasets.bash"
 }
 
 if [ $# != 2 ]; then

@@ -13,11 +13,15 @@ function show_help {
 }
 
 function run_training {
+    PEM="-i "$1""
+    SERVER="ubuntu@$2"
     TRAINING_FOLDER=training
 
-    scp -f training.config ${AWS_PARAMS}:${TRAINING_FOLDER}
-    ssh ${AWS_PARAMS} "cd ~/${TRAINING_FOLDER} && bash -s"<training.bash
-    scp -f ${AWS_PARAMS}:${TRAINING_FOLDER}/training_results.pb .
+    scp ${PEM} training.config ${SERVER}:${TRAINING_FOLDER}
+    scp ${PEM} training.bash ${SERVER}:${TRAINING_FOLDER}
+    ssh ${PEM} ${SERVER}
+    #ssh ${PEM} ${SERVER} "cd ~/${TRAINING_FOLDER} && ./training.bash"
+    scp ${PEM} ${SERVER}:${TRAINING_FOLDER}/training_results.pb .
 }
 
 if [ $# != 2 ]; then

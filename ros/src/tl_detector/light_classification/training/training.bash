@@ -8,6 +8,10 @@
 # To change base model, update fine_tune_checkpoint path in training model
 # and corresponding file name with id in download_datasets.bash
 
+cd models/research
+export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim:`pwd`/object_detection
+cd ../..
+
 source activate carnd-capstone
 
 python ./models/research/object_detection/train.py --pipeline_config_path=training.config --train_dir=training_intermediate

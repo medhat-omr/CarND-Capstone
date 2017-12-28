@@ -24,5 +24,4 @@ fi
 # multiple *.record files - relatively new feature
 git clone https://github.com/dimaga/models
 cd models/research
-export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim:`pwd`/object_detection
 protoc object_detection/protos/*.proto --python_out=.
