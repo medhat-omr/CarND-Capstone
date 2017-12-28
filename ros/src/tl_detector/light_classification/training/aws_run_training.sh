@@ -7,9 +7,9 @@ function show_help {
 function run_training {
     TRAINING_FOLDER=training
 
-    scp training.config ${AWS_PARAMS}:${TRAINING_FOLDER}
+    scp -f training.config ${AWS_PARAMS}:${TRAINING_FOLDER}
     ssh ${AWS_PARAMS} "cd ~/${TRAINING_FOLDER} && bash -s"<training.sh
-    scp ${AWS_PARAMS}:${TRAINING_FOLDER}/training_results.pb .
+    scp -f ${AWS_PARAMS}:${TRAINING_FOLDER}/training_results.pb .
 }
 
 if [ $# != 2 ]; then
