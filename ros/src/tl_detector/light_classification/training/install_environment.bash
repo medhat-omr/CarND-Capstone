@@ -9,15 +9,15 @@ source activate carnd-capstone
 if hash apt-get 2>/dev/null; then
     # Ubuntu configuration
     pip install -r requirements_ubuntu.txt
-    apt-get install protobuf-compiler
+    sudo apt-get install protobuf-compiler
 else
     # Mac OS configuration
     pip install -r requirements_macos.txt
     brew install protobuf-compiler
-fi
 
-# Workaround to enable training scripts outside Jupyter notebook
-echo backend:TkAgg >~/.matplotlib/matplotlibrc
+    # Workaround to enable training scripts outside Jupyter notebook
+    echo backend:TkAgg >~/.matplotlib/matplotlibrc
+fi
 
 # Unlike tensorflow/models, which may also change in the future,
 # dimaga/models has compatibility fixes with TL 1.3, while supporting
