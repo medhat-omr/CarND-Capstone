@@ -15,7 +15,7 @@ function show_help {
 if [ $# != 2 ]; then
     show_help
 else
-    ./aws_install_and_download.bash
-    ./aws_run_training.bash
+    ./aws_install_and_download.bash $1 $2
+    ./aws_run_training.bash $1 $2
 fi
 

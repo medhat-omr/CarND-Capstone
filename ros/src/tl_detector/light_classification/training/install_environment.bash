@@ -9,6 +9,7 @@ source activate carnd-capstone
 if hash apt-get 2>/dev/null; then
     # Ubuntu configuration
     pip install -r requirements_ubuntu.txt
+    sudo dpkg --configure -a
     sudo apt-get install protobuf-compiler
 else
     # Mac OS configuration
