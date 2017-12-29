@@ -11,6 +11,8 @@ import numpy as np
 import rospkg
 import math
 
+CMD_RATE = 10
+
 class TLPublisher(object):
     def __init__(self):
         rospy.init_node('tl_publisher')
@@ -25,7 +27,7 @@ class TLPublisher(object):
         self.loop()
 
     def loop(self):
-        rate = rospy.Rate(50)
+        rate = rospy.Rate(CMD_RATE)
         while not rospy.is_shutdown():
             self.traffic_light_pubs.publish(self.lights)
             rate.sleep()
