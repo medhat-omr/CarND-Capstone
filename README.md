@@ -1,5 +1,5 @@
 # Udacity CarND System Integration Project
-** Team Members: **
+**Team Members:**
 - Medhat Omr (Team Leader)
 - Ibrahim Almohandes
 - Dmitry Gavrilenko
