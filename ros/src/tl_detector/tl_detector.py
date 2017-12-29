@@ -11,7 +11,10 @@ from light_classification.tl_classifier import TLClassifier
 import tf
 import yaml
 
-STATE_COUNT_THRESHOLD = 3
+RED_COUNT_THRESHOLD = 1
+YEL_COUNT_THRESHOLD = 5
+GRN_COUNT_THRESHOLD = 5
+UNK_COUNT_THRESHOLD = 50
 
 class TLDetector(object):
     def __init__(self):
@@ -100,7 +103,17 @@ class TLDetector(object):
         used.
         '''
 
-        if self.state != state:
+        if self.state == TrafficLight.RED:
+            STATE_COUNT_THRESHOLD = RED_COUNT_THRESHOLD
+        if self.state == TrafficLight.YELLOW:
+            STATE_COUNT_THRESHOLD = YEL_COUNT_THRESHOLD        
+        if self.state == TrafficLight.GREEN:
+            STATE_COUNT_THRESHOLD = GRN_COUNT_THRESHOLD
+        if self.state == TrafficLight.UNKNOWN:
+            STATE_COUNT_THRESHOLD = UNK_COUNT_THRESHOLD
+            
+            
+        if self.state != state:    
             self.state_count = 0
             self.state = state
         elif self.state_count >= STATE_COUNT_THRESHOLD:
@@ -128,7 +141,7 @@ class TLDetector(object):
         # Return None for distant traffic lights to turn off classification
         # procedure, which is very resource intensive and causes latency
         # problems
-        min_dist = 200.0
+        min_dist = 100.0
 
         for light in self.lights:
             pos_world = np.array([light.pose.pose.position.x,
