@@ -26,6 +26,6 @@
     - Program launches with ``launch/styx.launch`` and ``launch/site.launch`` for the simulator and car respectively.
     
 
-[![Click to View Sumulator Video](https://img.youtube.com/vi/GP0a8tXMdgk/0.jpg)](https://www.youtube.com/watch?v=GP0a8tXMdgk "Simulator Video")
+[![Click to View Sumulator Video](https://img.youtube.com/vi/7mQwHlYakAg/0.jpg)](https://www.youtube.com/watch?v=7mQwHlYakAg "Simulator Video")
 
-[Simulator Video](https://www.youtube.com/watch?v=GP0a8tXMdgk)
+[Simulator Video](https://www.youtube.com/watch?v=7mQwHlYakAg)
