@@ -9,7 +9,14 @@ source activate carnd-capstone
 if hash apt-get 2>/dev/null; then
     # Ubuntu configuration
     pip install -r requirements_ubuntu.txt
+    
+    # Magic tricks to work around problems of installation problems
+    # of protobuf-compiler on udacity-carnd-advanced-deep-learning
+    # configuration on AWS
+    sudo rm /var/lib/dpkg/lock
     sudo dpkg --configure -a
+    sudo dpkg --configure -a # First attempt usually fails :)
+
     sudo apt-get install protobuf-compiler
 else
     # Mac OS configuration
