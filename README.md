@@ -1,9 +1,9 @@
 # Udacity CarND System Integration Project
 **Team Members:**
-- Medhat Omr (Team Leader)
-- Ibrahim Almohandes
-- Dmitry Gavrilenko
-- Brian Meier
+- Medhat Omr (Team Leader) (medhat.omr@icloud.com)
+- Ibrahim Almohandes (heema111@gmail.com)
+- Dmitry Gavrilenko (dmitry.gavrilenko@icloud.com)
+- Brian Meier (bjmeier@verizon.net)
 
 ### Submission checklist and requirements
 
