@@ -11,7 +11,7 @@ from light_classification.tl_classifier import TLClassifier
 import tf
 import yaml
 
-RED_COUNT_THRESHOLD = 1
+RED_COUNT_THRESHOLD = 3
 YEL_COUNT_THRESHOLD = 3
 GRN_COUNT_THRESHOLD = 3
 UNK_COUNT_THRESHOLD = 50
