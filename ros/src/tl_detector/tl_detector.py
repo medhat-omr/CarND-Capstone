@@ -10,8 +10,9 @@ from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
 import tf
 import yaml
+import math
 
-RED_COUNT_THRESHOLD = 3
+RED_COUNT_THRESHOLD = 1
 YEL_COUNT_THRESHOLD = 3
 GRN_COUNT_THRESHOLD = 3
 UNK_COUNT_THRESHOLD = 50
@@ -142,6 +143,7 @@ class TLDetector(object):
         # procedure, which is very resource intensive and causes latency
         # problems
         min_dist = 100.0
+        trans_car_result = None
 
         for light in self.lights:
             pos_world = np.array([light.pose.pose.position.x,
@@ -150,7 +152,7 @@ class TLDetector(object):
                                   1.0])
 
             pos_car = self.world_2_car.dot(pos_world)
-            in_front = pos_car[0] > 0
+            in_front = pos_car[0] > 0.1
             if not in_front:
                 continue
 
@@ -158,6 +160,15 @@ class TLDetector(object):
             if dist < min_dist:
                 min_dist = dist
                 result = light
+                trans_car_result = pos_car[:3]
+
+        if trans_car_result is not None:
+            dot_x = trans_car_result[0] / np.linalg.norm(trans_car_result)
+            dir_phi = math.acos(dot_x)
+
+            # If the traffic light is outside expected camera frutum, do not detect it
+            if dir_phi < -np.pi / 4 or dir_phi > np.pi / 4:
+                return None
 
         return result
 

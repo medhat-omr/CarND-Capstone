@@ -8,7 +8,7 @@ import time
 SCRIPT_FOLDER = os.path.dirname(__file__)
 INFERENCE_GRAPH = os.path.join(SCRIPT_FOLDER, "training/training_results.pb")
 
-MIN_SCORE_VALUE = 0.2
+MIN_SCORE_VALUE = 0.3
 MIN_NORMED_HEIGHT = 0.08
 
 def label_to_traffic_light(cls):
@@ -60,6 +60,10 @@ class TLClassifier(object):
         detection_graph = tf.Graph()
         self.session = tf.Session(graph=detection_graph, config=config)
 
+        self.small_img = np.zeros((300, 300, 3), 'uint8')
+        self.prev_small_img = np.copy(self.small_img)
+        self.prev_result = TrafficLight.UNKNOWN
+
         with detection_graph.as_default():
             od_graph_def = tf.GraphDef()
 
@@ -88,9 +92,20 @@ class TLClassifier(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        image_expanded = np.expand_dims(image, axis=0)
-
         time0 = time.time()
+
+        cv2.resize(
+            image,
+            (self.small_img.shape[1], self.small_img.shape[0]),
+            dst=self.small_img,
+            interpolation=cv2.INTER_AREA)
+
+        # A shortcut for simulator: if the image hasn't changed,
+        # return detection previous results
+        if np.array_equal(self.prev_small_img, self.small_img):
+            return self.prev_result
+
+        image_expanded = np.expand_dims(self.small_img, axis=0)
 
         (boxes, scores, classes) = self.session.run(
             [self.detection_boxes,
@@ -129,9 +144,11 @@ class TLClassifier(object):
             print "Classification time", (time1 - time0) * 1000.0, "ms"
             print "score, result", max_total_score, max_result
             print
-            #image_bgr = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            #image_bgr = cv2.cvtColor(self.small_img, cv2.COLOR_RGB2BGR)
             #draw_bboxes(image_bgr, boxes, classes, scores,)
             #cv2.imshow("camera", image_bgr)
             #cv2.waitKey(1)
 
+        self.prev_small_img[:] = self.small_img
+        self.prev_result = max_result
         return max_result
