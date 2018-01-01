@@ -11,7 +11,7 @@ from light_classification.tl_classifier import TLClassifier
 import tf
 import yaml
 
-RED_COUNT_THRESHOLD = 1
+RED_COUNT_THRESHOLD = 3
 YEL_COUNT_THRESHOLD = 3
 GRN_COUNT_THRESHOLD = 3
 UNK_COUNT_THRESHOLD = 50
@@ -230,7 +230,7 @@ class TLDetector(object):
         if self.camera_image is None:
             return TrafficLight.UNKNOWN
 
-        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "rgb8")
 
         #Get classification
         result = self.light_classifier.get_classification(cv_image)
