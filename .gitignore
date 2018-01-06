@@ -1,9 +1,8 @@
 *.py[cod]
-
 build
 devel
-
 profile.tmp
-
 .DS_Store
 .idea
+bag_imgs
+csv_files
