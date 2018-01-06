@@ -39,9 +39,9 @@ def draw_bboxes(image, boxes, classes, scores):
 
         tl = label_to_traffic_light(classes[i])
         if TrafficLight.RED == tl:
-            color = (0, 0, 255)
+            color = (255, 0, 0)
         elif TrafficLight.YELLOW == tl:
-            color = (0, 255, 255)
+            color = (255, 255, 0)
         elif TrafficLight.GREEN == tl:
             color = (0, 255, 0)
         else:
@@ -144,10 +144,12 @@ class TLClassifier(object):
             print "Classification time", (time1 - time0) * 1000.0, "ms"
             print "score, result", max_total_score, max_result
             print
-            #image_bgr = cv2.cvtColor(self.small_img, cv2.COLOR_RGB2BGR)
-            #draw_bboxes(image_bgr, boxes, classes, scores,)
-            #cv2.imshow("camera", image_bgr)
-            #cv2.waitKey(1)
+            # import matplotlib.pyplot as plt
+            # from copy import deepcopy
+            # tmp_img = deepcopy(self.small_img)
+            # draw_bboxes(tmp_img, boxes, classes, scores)
+            # plt.imsave(str(time1)+'.jpg', tmp_img, format='jpg')
+
 
         self.prev_small_img[:] = self.small_img
         self.prev_result = max_result
