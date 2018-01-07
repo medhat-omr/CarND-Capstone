@@ -42,7 +42,7 @@ class WaypointUpdater(object):
         # TODO: Add other member variables you need below
         self._base_wps = None
         self._curr_pose = None
-        self._traffic_wp_idx = None
+        self._traffic_wp_idx = -1
         self._is_initialized = False
 
         # rospy.spin()
